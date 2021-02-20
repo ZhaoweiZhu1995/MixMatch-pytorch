@@ -53,19 +53,6 @@ parser.add_argument('--T', default=0.5, type=float)
 parser.add_argument('--ema-decay', default=0.999, type=float)
 
 
-args = parser.parse_args()
-state = {k: v for k, v in args._get_kwargs()}
-# Use CUDA
-os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-use_cuda = torch.cuda.is_available()
-use_cuda = False
-
-# Random seed
-if args.manualSeed is None:
-    args.manualSeed = random.randint(1, 10000)
-np.random.seed(args.manualSeed)
-
-best_acc = 0  # best test accuracy
 
 def main():
     exit()
@@ -420,4 +407,18 @@ def interleave(xy, batch):
 
 if __name__ == '__main__':
     print('Runing here', flush = True)
-    # main()
+    
+    args = parser.parse_args()
+    state = {k: v for k, v in args._get_kwargs()}
+    # Use CUDA
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+    use_cuda = torch.cuda.is_available()
+    use_cuda = False
+
+    # Random seed
+    if args.manualSeed is None:
+        args.manualSeed = random.randint(1, 10000)
+    np.random.seed(args.manualSeed)
+
+    best_acc = 0  # best test accuracy
+    main()
