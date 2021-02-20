@@ -69,6 +69,7 @@ np.random.seed(args.manualSeed)
 best_acc = 0  # best test accuracy
 
 def main():
+    exit()
     global best_acc
     num_workers = 2
     if not os.path.isdir(args.out):
@@ -94,7 +95,6 @@ def main():
 
     # Model
     print("==> creating WRN-28-2")
-    exit()
     def create_model(use_cuda, ema=False):
         model = models.WideResNet(num_classes=10)
         if use_cuda:
