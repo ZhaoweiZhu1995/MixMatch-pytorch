@@ -2,28 +2,50 @@
 
 import argparse
 import os
-# import shutil
-# import time
-# import random
+import shutil
+import time
+import random
 
-# import numpy as np
+import numpy as np
 
-# import torch
-# import torch.nn as nn
-# import torch.nn.parallel
-# import torch.backends.cudnn as cudnn
-# import torch.optim as optim
-# import torch.utils.data as data
-# import torchvision.transforms as transforms
-# import torch.nn.functional as F
+import torch
+import torch.nn as nn
+import torch.nn.parallel
+import torch.backends.cudnn as cudnn
+import torch.optim as optim
+import torch.utils.data as data
+import torchvision.transforms as transforms
+import torch.nn.functional as F
 
-# import models.wideresnet as models
-# import dataset.cifar10 as dataset
-# from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig, AverageMeterVector
-# from tensorboardX import SummaryWriter
+import models.wideresnet as models
+import dataset.cifar10 as dataset
+from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig, AverageMeterVector
+from tensorboardX import SummaryWriter
 
 
+parser = argparse.ArgumentParser(description='PyTorch MixMatch Training')
+# Optimization options
+parser.add_argument('--epochs', default=1024, type=int, help='number of total epochs to run')
+parser.add_argument('--start-epoch', default=0, type=int, help='manual epoch number (useful on restarts)')
+parser.add_argument('--batch-size', default=64, type=int, help='train batchsize')
+parser.add_argument('--lr', '--learning-rate', default=0.002, type=float, help='initial learning rate')
+# Checkpoints
+parser.add_argument('--resume', default='', type=str, help='path to latest checkpoint (default: none)')
+# Miscs
+parser.add_argument('--manualSeed', type=int, default=0, help='manual seed')
+#Device options
+parser.add_argument('--gpu', default='0', type=str, help='id(s) for CUDA_VISIBLE_DEVICES')
+#Method options
+parser.add_argument('--n-labeled', type=int, default=250, help='Number of labeled data')
+parser.add_argument('--train-iteration', type=int, default=1024, help='Number of iteration per epoch')
+parser.add_argument('--out', default='result', help='Directory to output the result')
+parser.add_argument('--alpha', default=0.75, type=float)
+parser.add_argument('--lambda-u', default=75, type=float)
+parser.add_argument('--T', default=0.5, type=float)
+parser.add_argument('--ema-decay', default=0.999, type=float)
+print('Runing here', flush = True)
 
+args = parser.parse_args()
 
 
 def main():
@@ -378,29 +400,7 @@ def interleave(xy, batch):
 
 if __name__ == "__main__":
     print('Runing here', flush = True)
-    # parser = argparse.ArgumentParser(description='PyTorch MixMatch Training')
-    # # Optimization options
-    # parser.add_argument('--epochs', default=1024, type=int, help='number of total epochs to run')
-    # parser.add_argument('--start-epoch', default=0, type=int, help='manual epoch number (useful on restarts)')
-    # parser.add_argument('--batch-size', default=64, type=int, help='train batchsize')
-    # parser.add_argument('--lr', '--learning-rate', default=0.002, type=float, help='initial learning rate')
-    # # Checkpoints
-    # parser.add_argument('--resume', default='', type=str, help='path to latest checkpoint (default: none)')
-    # # Miscs
-    # parser.add_argument('--manualSeed', type=int, default=0, help='manual seed')
-    # #Device options
-    # parser.add_argument('--gpu', default='0', type=str, help='id(s) for CUDA_VISIBLE_DEVICES')
-    # #Method options
-    # parser.add_argument('--n-labeled', type=int, default=250, help='Number of labeled data')
-    # parser.add_argument('--train-iteration', type=int, default=1024, help='Number of iteration per epoch')
-    # parser.add_argument('--out', default='result', help='Directory to output the result')
-    # parser.add_argument('--alpha', default=0.75, type=float)
-    # parser.add_argument('--lambda-u', default=75, type=float)
-    # parser.add_argument('--T', default=0.5, type=float)
-    # parser.add_argument('--ema-decay', default=0.999, type=float)
-    # print('Runing here', flush = True)
-    
-    # args = parser.parse_args()
+
     # state = {k: v for k, v in args._get_kwargs()}
     # # Use CUDA
     # os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
