@@ -94,9 +94,10 @@ def main():
     # Model
     print("==> creating WRN-28-2")
 
-    def create_model(ema=False):
+    def create_model(use_cuda, ema=False):
         model = models.WideResNet(num_classes=10)
-        model = model.cuda()
+        if use_cuda:
+            model = model.cuda()
 
         if ema:
             for param in model.parameters():
@@ -104,8 +105,8 @@ def main():
 
         return model
 
-    model = create_model()
-    ema_model = create_model(ema=True)
+    model = create_model(use_cuda)
+    ema_model = create_model(use_cuda, ema=True)
 
     cudnn.benchmark = True
     print('    Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
