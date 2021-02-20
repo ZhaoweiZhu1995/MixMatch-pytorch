@@ -55,7 +55,7 @@ parser.add_argument('--ema-decay', default=0.999, type=float)
 
 args = parser.parse_args()
 state = {k: v for k, v in args._get_kwargs()}
-
+print('Runing here', flush = True)
 # Use CUDA
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 use_cuda = torch.cuda.is_available()
