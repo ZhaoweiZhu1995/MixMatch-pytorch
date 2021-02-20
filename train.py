@@ -76,7 +76,7 @@ def main():
         mkdir_p(args.out)
 
     # Data
-    print(f'==> Preparing cifar10')
+    print('==> Preparing cifar10')
     transform_train = transforms.Compose([
         dataset.RandomPadandCrop(32),
         dataset.RandomFlip(),
