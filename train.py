@@ -5,7 +5,7 @@ import os
 # import shutil
 import time
 import random
-
+print('Runing here', flush = True)
 import numpy as np
 
 import torch
