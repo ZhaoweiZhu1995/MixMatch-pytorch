@@ -5,7 +5,6 @@ import os
 # import shutil
 import time
 import random
-print('Runing here', flush = True)
 import numpy as np
 
 import torch
@@ -16,6 +15,8 @@ import torch.optim as optim
 import torch.utils.data as data
 import torchvision.transforms as transforms
 import torch.nn.functional as F
+
+print('Runing here', flush = True)
 
 import models.wideresnet as models
 import dataset.cifar10 as dataset
