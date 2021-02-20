@@ -2,32 +2,31 @@
 
 import argparse
 import os
-import shutil
-import time
-import random
+# import shutil
+# import time
+# import random
 
-import numpy as np
+# import numpy as np
 
-import torch
-import torch.nn as nn
-import torch.nn.parallel
-import torch.backends.cudnn as cudnn
-import torch.optim as optim
-import torch.utils.data as data
-import torchvision.transforms as transforms
-import torch.nn.functional as F
+# import torch
+# import torch.nn as nn
+# import torch.nn.parallel
+# import torch.backends.cudnn as cudnn
+# import torch.optim as optim
+# import torch.utils.data as data
+# import torchvision.transforms as transforms
+# import torch.nn.functional as F
 
-import models.wideresnet as models
-import dataset.cifar10 as dataset
-from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig, AverageMeterVector
-from tensorboardX import SummaryWriter
+# import models.wideresnet as models
+# import dataset.cifar10 as dataset
+# from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig, AverageMeterVector
+# from tensorboardX import SummaryWriter
 
 
 
 
 
 def main():
-    exit()
     global best_acc
     num_workers = 2
     if not os.path.isdir(args.out):
