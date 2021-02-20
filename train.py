@@ -377,7 +377,7 @@ def interleave(xy, batch):
         xy[0][i], xy[i][i] = xy[i][i], xy[0][i]
     return [torch.cat(v, dim=0) for v in xy]
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PyTorch MixMatch Training')
     # Optimization options
     parser.add_argument('--epochs', default=1024, type=int, metavar='N',
