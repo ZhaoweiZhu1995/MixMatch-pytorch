@@ -12,8 +12,9 @@ import math
 import torch.nn as nn
 import torch.nn.init as init
 from torch.autograd import Variable
+import numpy as np
 
-__all__ = ['get_mean_and_std', 'init_params', 'mkdir_p', 'AverageMeter']
+__all__ = ['get_mean_and_std', 'init_params', 'mkdir_p', 'AverageMeter',  'AverageMeterVector' ]
 
 
 def get_mean_and_std(dataset):
@@ -71,6 +72,23 @@ class AverageMeter(object):
 
     def update(self, val, n=1):
         self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
+
+class AverageMeterVector(object):
+    """Computes and stores the average and current value
+       Modified from https://github.com/pytorch/examples/blob/master/imagenet/main.py#L247-L262
+    """
+    def __init__(self, N):
+        self.reset(N)
+
+    def reset(self, N):
+        self.avg = np.zeros(N)
+        self.sum = np.zeros(N)
+        self.count = 0
+
+    def update(self, val, n=1):
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count

@@ -19,7 +19,7 @@ import torch.nn.functional as F
 
 import models.wideresnet as models
 import dataset.cifar10 as dataset
-from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig
+from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig, AverageMeterVector
 from tensorboardX import SummaryWriter
 
 parser = argparse.ArgumentParser(description='PyTorch MixMatch Training')
@@ -69,7 +69,7 @@ best_acc = 0  # best test accuracy
 
 def main():
     global best_acc
-
+    num_workers = 2
     if not os.path.isdir(args.out):
         mkdir_p(args.out)
 
@@ -86,10 +86,10 @@ def main():
     ])
 
     train_labeled_set, train_unlabeled_set, val_set, test_set = dataset.get_cifar10('./data', args.n_labeled, transform_train=transform_train, transform_val=transform_val)
-    labeled_trainloader = data.DataLoader(train_labeled_set, batch_size=args.batch_size, shuffle=True, num_workers=0, drop_last=True)
-    unlabeled_trainloader = data.DataLoader(train_unlabeled_set, batch_size=args.batch_size, shuffle=True, num_workers=0, drop_last=True)
-    val_loader = data.DataLoader(val_set, batch_size=args.batch_size, shuffle=False, num_workers=0)
-    test_loader = data.DataLoader(test_set, batch_size=args.batch_size, shuffle=False, num_workers=0)
+    labeled_trainloader = data.DataLoader(train_labeled_set, batch_size=args.batch_size, shuffle=True, num_workers=num_workers, drop_last=True)
+    unlabeled_trainloader = data.DataLoader(train_unlabeled_set, batch_size=args.batch_size, shuffle=True, num_workers=num_workers, drop_last=True)
+    val_loader = data.DataLoader(val_set, batch_size=args.batch_size, shuffle=False, num_workers=num_workers)
+    test_loader = data.DataLoader(test_set, batch_size=args.batch_size, shuffle=False, num_workers=num_workers)
 
     # Model
     print("==> creating WRN-28-2")
@@ -301,13 +301,14 @@ def train(labeled_trainloader, unlabeled_trainloader, model, optimizer, ema_opti
 
     return (losses.avg, losses_x.avg, losses_u.avg,)
 
-def validate(valloader, model, criterion, epoch, use_cuda, mode):
+def validate(valloader, model, criterion, epoch, use_cuda, mode, num_classes = 10):
 
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
+    top1_per_class = AverageMeterVector(num_classes)
 
     # switch to evaluate mode
     model.eval()
@@ -327,7 +328,10 @@ def validate(valloader, model, criterion, epoch, use_cuda, mode):
 
             # measure accuracy and record loss
             prec1, prec5 = accuracy(outputs, targets, topk=(1, 5))
+            prec1_per_class = accuracy(outputs, targets, topk=(1,), per_class=True)
             losses.update(loss.item(), inputs.size(0))
+            top1_per_class.update(prec1_per_class.cpu().numpy(), inputs.size(0))
+
             top1.update(prec1.item(), inputs.size(0))
             top5.update(prec5.item(), inputs.size(0))
 
@@ -336,7 +340,7 @@ def validate(valloader, model, criterion, epoch, use_cuda, mode):
             end = time.time()
 
             # plot progress
-            bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
+            bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f} | \n top1 per class: {top1_per_class: .4f}'.format(
                         batch=batch_idx + 1,
                         size=len(valloader),
                         data=data_time.avg,
@@ -346,8 +350,8 @@ def validate(valloader, model, criterion, epoch, use_cuda, mode):
                         loss=losses.avg,
                         top1=top1.avg,
                         top5=top5.avg,
+                        top1_per_class = top1_per_class.avg,
                         )
-            bar.next()
         bar.finish()
     return (losses.avg, top1.avg)
 
