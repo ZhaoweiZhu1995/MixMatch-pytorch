@@ -86,7 +86,7 @@ class AverageMeterVector(object):
     def reset(self, N):
         self.avg = np.zeros(N)
         self.sum = np.zeros(N)
-        self.count = 0
+        self.count = np.zeros(N)
 
     def update(self, val, n=1):
         self.sum += val * n

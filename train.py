@@ -325,9 +325,9 @@ def validate(valloader, model, criterion, epoch, use_cuda, mode, num_classes = 1
 
             # measure accuracy and record loss
             prec1, prec5 = accuracy(outputs, targets, topk=(1, 5))
-            prec1_per_class = accuracy(outputs, targets, topk=(1,), per_class=True)
+            prec1_per_class, rec_num = accuracy(outputs, targets, topk=(1,), per_class=True)
             losses.update(loss.item(), inputs.size(0))
-            top1_per_class.update(prec1_per_class.cpu().numpy(), inputs.size(0))
+            top1_per_class.update(prec1_per_class.cpu().numpy(), rec_num.cpu().numpy())
 
             top1.update(prec1.item(), inputs.size(0))
             top5.update(prec5.item(), inputs.size(0))
@@ -350,7 +350,9 @@ def validate(valloader, model, criterion, epoch, use_cuda, mode, num_classes = 1
                         # top1_per_class = top1_per_class.avg,
                         )
         bar.finish()
-        print(f'top1_per_class.avg: {np.round(top1_per_class.avg*num_classes,4)}', flush = True)
+        print(f'top1_per_class accuracy is: {np.round(top1_per_class.avg,4)}', flush = True)
+        print(f'top1 accuracy is: {np.round(top1.avg,4)}', flush = True)
+        
     return (losses.avg, top1.avg)
 
 def save_checkpoint(state, is_best, checkpoint=args.out, filename='checkpoint.pth.tar'):

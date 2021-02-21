@@ -34,7 +34,7 @@ def train_val_split(labels, n_labeled_per_class):
     train_labeled_idxs = []
     train_unlabeled_idxs = []
     val_idxs = []
-
+    # Set some strategies
     for i in range(10):
         idxs = np.where(labels == i)[0]
         np.random.shuffle(idxs)
