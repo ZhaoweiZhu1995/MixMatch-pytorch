@@ -44,7 +44,7 @@ def train_val_split(labels, n_labeled_per_class, mode = None):
         val_idxs = idxs[-5000:]
         rec = np.zeros(10)
         for i in range(10):
-            rec[i] = labels[train_labeled_idxs] == i
+            rec[i] = np.sum(labels[train_labeled_idxs] == i)
         print(f'We sampled {rec} instances for each class')
     else:
         for i in range(10):
