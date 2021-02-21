@@ -37,7 +37,7 @@ def train_val_split(labels, n_labeled_per_class, mode = None):
     # Set some strategies
     print(f'Current sampling strategy is {mode}')
     if mode == 'PureRandom':
-        idxs = np.arange(labels.size(0))
+        idxs = np.arange(labels.shape[0])
         np.random.shuffle(idxs)
         train_labeled_idxs = idxs[:n_labeled_per_class*10]
         train_unlabeled_idxs = idxs[n_labeled_per_class*10:-5000]
