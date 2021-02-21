@@ -13,7 +13,7 @@ def accuracy(output, target, topk=(1,), per_class = False):
 
     if per_class:
         # per class accuracy, only top1
-        num_classes = target.size(1)
+        num_classes = target.shape[1]
         res_per_class = torch.zeros(num_classes)
         for class_i in range(num_classes):
             correct_class = correct * (target.view(1, -1) == class_i).expand_as(pred)
