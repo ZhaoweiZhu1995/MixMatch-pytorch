@@ -18,7 +18,7 @@ def accuracy(output, target, topk=(1,), per_class = False):
         for class_i in range(num_classes):
             correct_class = correct * (target.view(1, -1) == class_i).expand_as(pred)
             correct_k = correct_class[0].view(-1).float().sum(0)
-            res_per_class[class_i].append(correct_k.mul_(100.0 / batch_size))
+            res_per_class[class_i] = (correct_k.mul_(100.0 / batch_size))
         return res_per_class
     else:
         res = []
