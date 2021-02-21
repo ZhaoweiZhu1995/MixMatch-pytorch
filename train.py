@@ -16,14 +16,14 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 
-print('Runing here', flush = True)
+
 
 import models.wideresnet as models
 import dataset.cifar10 as dataset
 from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig, AverageMeterVector
 from tensorboardX import SummaryWriter
 
-
+print('Runing here', flush = True)
 parser = argparse.ArgumentParser(description='PyTorch MixMatch Training')
 # Optimization options
 parser.add_argument('--epochs', default=1024, type=int, help='number of total epochs to run')
