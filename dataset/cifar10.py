@@ -15,10 +15,10 @@ class TransformTwice:
 
 def get_cifar10(root, n_labeled,
                  transform_train=None, transform_val=None,
-                 download=True):
+                 download=True, mode = None):
 
     base_dataset = torchvision.datasets.CIFAR10(root, train=True, download=download)
-    train_labeled_idxs, train_unlabeled_idxs, val_idxs = train_val_split(base_dataset.targets, int(n_labeled/10))
+    train_labeled_idxs, train_unlabeled_idxs, val_idxs = train_val_split(base_dataset.targets, int(n_labeled/10), mode = mode)
 
     train_labeled_dataset = CIFAR10_labeled(root, train_labeled_idxs, train=True, transform=transform_train)
     train_unlabeled_dataset = CIFAR10_unlabeled(root, train_unlabeled_idxs, train=True, transform=TransformTwice(transform_train))
@@ -35,12 +35,20 @@ def train_val_split(labels, n_labeled_per_class, mode = None):
     train_unlabeled_idxs = []
     val_idxs = []
     # Set some strategies
-    for i in range(10):
-        idxs = np.where(labels == i)[0]
+    print(f'Current sampling strategy is {mode}')
+    if mode == 'PureRandom':
+        idxs = np.arange(labels.size(0))
         np.random.shuffle(idxs)
-        train_labeled_idxs.extend(idxs[:n_labeled_per_class])
-        train_unlabeled_idxs.extend(idxs[n_labeled_per_class:-500])
-        val_idxs.extend(idxs[-500:])
+        train_labeled_idxs = idxs[:n_labeled_per_class*10]
+        train_unlabeled_idxs = idxs[n_labeled_per_class*10:-5000]
+        val_idxs = idxs[-5000:]
+    else:
+        for i in range(10):
+            idxs = np.where(labels == i)[0]
+            np.random.shuffle(idxs)
+            train_labeled_idxs.extend(idxs[:n_labeled_per_class])
+            train_unlabeled_idxs.extend(idxs[n_labeled_per_class:-500])
+            val_idxs.extend(idxs[-500:])
     np.random.shuffle(train_labeled_idxs)
     np.random.shuffle(train_unlabeled_idxs)
     np.random.shuffle(val_idxs)
