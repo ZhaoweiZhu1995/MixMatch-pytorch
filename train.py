@@ -350,8 +350,8 @@ def validate(valloader, model, criterion, epoch, use_cuda, mode, num_classes = 1
                         # top1_per_class = top1_per_class.avg,
                         )
         bar.finish()
-        print(f'top1_per_class accuracy is: {np.round(top1_per_class.avg,4)}', flush = True)
-        print(f'top1 accuracy is: {np.round(top1.avg,4)}', flush = True)
+        print(f'{mode} top1_per_class accuracy is: {np.round(top1_per_class.avg,4)}', flush = True)
+        print(f'{mode} top1 accuracy is: {np.round(top1.avg,4)}', flush = True)
         
     return (losses.avg, top1.avg)
 

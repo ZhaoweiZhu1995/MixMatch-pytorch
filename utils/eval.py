@@ -20,7 +20,7 @@ def accuracy(output, target, topk=(1,), per_class = False):
             correct_class = correct * (target.view(1, -1) == class_i).expand_as(pred)
             correct_k = correct_class[0].view(-1).float().sum(0)
             rec_num[class_i] = torch.sum(target == class_i)
-            res_per_class[class_i] = (correct_k.mul_(100.0 / batch_size))
+            res_per_class[class_i] = (correct_k.mul_(100.0 / rec_num[class_i]))
         return res_per_class, rec_num
     else:
         res = []
