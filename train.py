@@ -337,7 +337,7 @@ def validate(valloader, model, criterion, epoch, use_cuda, mode, num_classes = 1
             end = time.time()
 
             # plot progress
-            bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f} | \n top1 per class: {top1_per_class: .4f}'.format(
+            bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
                         batch=batch_idx + 1,
                         size=len(valloader),
                         data=data_time.avg,
@@ -347,9 +347,10 @@ def validate(valloader, model, criterion, epoch, use_cuda, mode, num_classes = 1
                         loss=losses.avg,
                         top1=top1.avg,
                         top5=top5.avg,
-                        top1_per_class = top1_per_class.avg,
+                        # top1_per_class = top1_per_class.avg,
                         )
         bar.finish()
+        print(f'top1_per_class.avg: {np.round(top1_per_class.avg*num_classes,4)}', flush = True)
     return (losses.avg, top1.avg)
 
 def save_checkpoint(state, is_best, checkpoint=args.out, filename='checkpoint.pth.tar'):
