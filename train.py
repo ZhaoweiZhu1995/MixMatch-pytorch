@@ -2,7 +2,7 @@
 from tensorboardX import SummaryWriter
 import argparse
 import os
-# import shutil
+import shutil
 import time
 import random
 import numpy as np
@@ -22,8 +22,6 @@ import models.wideresnet as models
 import dataset.cifar10 as dataset
 from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig, AverageMeterVector
 
-
-print('Runing here', flush = True)
 
 
 
@@ -47,10 +45,24 @@ parser.add_argument('--alpha', default=0.75, type=float)
 parser.add_argument('--lambda-u', default=75, type=float)
 parser.add_argument('--T', default=0.5, type=float)
 parser.add_argument('--ema-decay', default=0.999, type=float)
-print('Runing here', flush = True)
+
 
 args = parser.parse_args()
 
+
+
+state = {k: v for k, v in args._get_kwargs()}
+# Use CUDA
+os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+use_cuda = torch.cuda.is_available()
+use_cuda = False
+
+# Random seed
+if args.manualSeed is None:
+    args.manualSeed = random.randint(1, 10000)
+np.random.seed(args.manualSeed)
+
+best_acc = 0  # best test accuracy
 
 def main():
     global best_acc
@@ -403,18 +415,4 @@ def interleave(xy, batch):
     return [torch.cat(v, dim=0) for v in xy]
 
 if __name__ == "__main__":
-    print('Runing here', flush = True)
-
-    # state = {k: v for k, v in args._get_kwargs()}
-    # # Use CUDA
-    # os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-    # use_cuda = torch.cuda.is_available()
-    # use_cuda = False
-
-    # # Random seed
-    # if args.manualSeed is None:
-    #     args.manualSeed = random.randint(1, 10000)
-    # np.random.seed(args.manualSeed)
-
-    # best_acc = 0  # best test accuracy
-    # main()
+    main()
