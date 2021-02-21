@@ -1,5 +1,5 @@
 # from __future__ import print_function
-
+from tensorboardX import SummaryWriter
 import argparse
 import os
 # import shutil
@@ -25,7 +25,7 @@ from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig, Average
 
 print('Runing here', flush = True)
 
-from tensorboardX import SummaryWriter
+
 
 parser = argparse.ArgumentParser(description='PyTorch MixMatch Training')
 # Optimization options
