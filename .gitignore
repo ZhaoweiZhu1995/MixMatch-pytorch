@@ -12,3 +12,4 @@ data/cifar-10-batches-py/test_batch
 result/events.out.tfevents.1613863715.Zhaowei-NUC
 result/log.txt
 utils/test.ipynb
+*.csv
