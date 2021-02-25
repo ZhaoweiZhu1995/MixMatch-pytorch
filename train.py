@@ -141,6 +141,8 @@ def main():
 
         if args.train_mode == 'small':
             train_small(labeled_trainloader, model, optimizer, criterion, epoch, use_cuda, num_classes = 10)
+            val_loss, val_acc = validate(val_loader, ema_model, criterion, epoch, use_cuda, mode='Valid Stats')
+            test_loss, test_acc = validate(test_loader, ema_model, criterion, epoch, use_cuda, mode='Test Stats ')
         else:
             print('\nEpoch: [%d | %d] LR: %f' % (epoch + 1, args.epochs, state['lr']))
 
