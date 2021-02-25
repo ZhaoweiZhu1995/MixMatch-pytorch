@@ -388,11 +388,11 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
 
         loss = Lx
 
-        # record loss
-        losses.update(loss.item(), inputs_x.size(0))
-        losses_x.update(Lx.item(), inputs_x.size(0))
-        losses_u.update(Lu.item(), inputs_x.size(0))
-        ws.update(w, inputs_x.size(0))
+        # # record loss
+        # losses.update(loss.item(), inputs_x.size(0))
+        # losses_x.update(Lx.item(), inputs_x.size(0))
+        # losses_u.update(Lu.item(), inputs_x.size(0))
+        # ws.update(w, inputs_x.size(0))
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
