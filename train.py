@@ -358,8 +358,10 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
         #     targets_u = targets_u.detach()
 
         # mixup
-        all_inputs = torch.cat([inputs_x], dim=0)
-        all_targets = torch.cat([targets_x], dim=0)
+        # all_inputs = torch.cat([inputs_x], dim=0)
+        # all_targets = torch.cat([targets_x], dim=0)
+        all_inputs = inputs_x
+        all_targets = targets_x
 
         l = np.random.beta(args.alpha, args.alpha)
 
