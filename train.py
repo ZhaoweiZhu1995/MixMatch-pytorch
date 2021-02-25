@@ -138,38 +138,41 @@ def main():
     # Train and val
     for epoch in range(start_epoch, args.epochs):
 
-        print('\nEpoch: [%d | %d] LR: %f' % (epoch + 1, args.epochs, state['lr']))
+        if args.sample == 'small':
+            train_small(labeled_trainloader, model, optimizer, criterion, epoch, use_cuda, num_classes = 10)
+        else:
+            print('\nEpoch: [%d | %d] LR: %f' % (epoch + 1, args.epochs, state['lr']))
 
-        train_loss, train_loss_x, train_loss_u = train(labeled_trainloader, unlabeled_trainloader, model, optimizer, ema_optimizer, train_criterion, epoch, use_cuda)
-        _, train_acc = validate(labeled_trainloader, ema_model, criterion, epoch, use_cuda, mode='Train Stats')
-        val_loss, val_acc = validate(val_loader, ema_model, criterion, epoch, use_cuda, mode='Valid Stats')
-        test_loss, test_acc = validate(test_loader, ema_model, criterion, epoch, use_cuda, mode='Test Stats ')
+            train_loss, train_loss_x, train_loss_u = train(labeled_trainloader, unlabeled_trainloader, model, optimizer, ema_optimizer, train_criterion, epoch, use_cuda)
+            _, train_acc = validate(labeled_trainloader, ema_model, criterion, epoch, use_cuda, mode='Train Stats')
+            val_loss, val_acc = validate(val_loader, ema_model, criterion, epoch, use_cuda, mode='Valid Stats')
+            test_loss, test_acc = validate(test_loader, ema_model, criterion, epoch, use_cuda, mode='Test Stats ')
 
-        step = args.train_iteration * (epoch + 1)
+            step = args.train_iteration * (epoch + 1)
 
-        writer.add_scalar('losses/train_loss', train_loss, step)
-        writer.add_scalar('losses/valid_loss', val_loss, step)
-        writer.add_scalar('losses/test_loss', test_loss, step)
+            writer.add_scalar('losses/train_loss', train_loss, step)
+            writer.add_scalar('losses/valid_loss', val_loss, step)
+            writer.add_scalar('losses/test_loss', test_loss, step)
 
-        writer.add_scalar('accuracy/train_acc', train_acc, step)
-        writer.add_scalar('accuracy/val_acc', val_acc, step)
-        writer.add_scalar('accuracy/test_acc', test_acc, step)
+            writer.add_scalar('accuracy/train_acc', train_acc, step)
+            writer.add_scalar('accuracy/val_acc', val_acc, step)
+            writer.add_scalar('accuracy/test_acc', test_acc, step)
 
-        # append logger file
-        logger.append([train_loss, train_loss_x, train_loss_u, val_loss, val_acc, test_loss, test_acc])
+            # append logger file
+            logger.append([train_loss, train_loss_x, train_loss_u, val_loss, val_acc, test_loss, test_acc])
 
-        # save model
-        is_best = val_acc > best_acc
-        best_acc = max(val_acc, best_acc)
-        save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': model.state_dict(),
-                'ema_state_dict': ema_model.state_dict(),
-                'acc': val_acc,
-                'best_acc': best_acc,
-                'optimizer' : optimizer.state_dict(),
-            }, is_best)
-        test_accs.append(test_acc)
+            # save model
+            is_best = val_acc > best_acc
+            best_acc = max(val_acc, best_acc)
+            save_checkpoint({
+                    'epoch': epoch + 1,
+                    'state_dict': model.state_dict(),
+                    'ema_state_dict': ema_model.state_dict(),
+                    'acc': val_acc,
+                    'best_acc': best_acc,
+                    'optimizer' : optimizer.state_dict(),
+                }, is_best)
+            test_accs.append(test_acc)
     logger.close()
     writer.close()
 
@@ -298,7 +301,7 @@ def train(labeled_trainloader, unlabeled_trainloader, model, optimizer, ema_opti
 
     return (losses.avg, losses_x.avg, losses_u.avg,)
 
-def train_small(valloader, model, criterion, epoch, use_cuda, mode, num_classes = 10):
+def train_small(labeled_trainloader, model, optimizer, criterion, epoch, use_cuda, num_classes = 10):
 
     batch_time = AverageMeter()
     data_time = AverageMeter()
@@ -308,51 +311,43 @@ def train_small(valloader, model, criterion, epoch, use_cuda, mode, num_classes 
     top1_per_class = AverageMeterVector(num_classes)
 
     # switch to evaluate mode
-    model.eval()
+    model.train()
 
     end = time.time()
-    bar = Bar(f'{mode}', max=len(valloader))
-    with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(valloader):
-            # measure data loading time
-            data_time.update(time.time() - end)
+    # bar = Bar(f'{mode}', max=len(labeled_trainloader))
 
-            if use_cuda:
-                inputs, targets = inputs.cuda(), targets.cuda(non_blocking=True)
-            # compute output
-            outputs = model(inputs)
-            loss = criterion(outputs, targets)
+    for batch_idx, (inputs, targets) in enumerate(labeled_trainloader):
+        # measure data loading time
+        data_time.update(time.time() - end)
 
-            # measure accuracy and record loss
-            prec1, prec5 = accuracy(outputs, targets, topk=(1, 5))
-            prec1_per_class, rec_num = accuracy(outputs, targets, topk=(1,), per_class=True)
-            losses.update(loss.item(), inputs.size(0))
-            top1_per_class.update(prec1_per_class.cpu().numpy(), rec_num.cpu().numpy())
+        if use_cuda:
+            inputs, targets = inputs.cuda(), targets.cuda(non_blocking=True)
+        # compute output
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
 
-            top1.update(prec1.item(), inputs.size(0))
-            top5.update(prec5.item(), inputs.size(0))
+        # measure accuracy and record loss
+        prec1, prec5 = accuracy(outputs, targets, topk=(1, 5))
+        prec1_per_class, rec_num = accuracy(outputs, targets, topk=(1,), per_class=True)
+        # losses.update(loss.item(), inputs.size(0))
+        top1_per_class.update(prec1_per_class.cpu().numpy(), rec_num.cpu().numpy())
 
-            # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
+        top1.update(prec1.item(), inputs.size(0))
+        top5.update(prec5.item(), inputs.size(0))
 
-            # plot progress
-            bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
-                        batch=batch_idx + 1,
-                        size=len(valloader),
-                        data=data_time.avg,
-                        bt=batch_time.avg,
-                        total=bar.elapsed_td,
-                        eta=bar.eta_td,
-                        loss=losses.avg,
-                        top1=top1.avg,
-                        top5=top5.avg,
-                        # top1_per_class = top1_per_class.avg,
-                        )
-        bar.finish()
-        print(f'{[mode]} top1_per_class accuracy is: {np.round(top1_per_class.avg,2)}, average: {np.round(top1.avg,4)}', flush = True)
+        # measure elapsed time
+        batch_time.update(time.time() - end)
+        end = time.time()
+
+        # compute gradient and do SGD step
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+
+    print(f'[*train_small] top1_per_class accuracy is: {np.round(top1_per_class.avg,2)}, average: {np.round(top1.avg,4)}', flush = True)
         
-    return (losses.avg, top1.avg)
+    # return (losses.avg, top1.avg)
 
 
 
