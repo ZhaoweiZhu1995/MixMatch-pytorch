@@ -319,12 +319,13 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
     unlabeled_train_iter = iter(unlabeled_trainloader)
 
     model.train()
-    for batch_idx in range(args.train_iteration):
-        try:
-            inputs_x, targets_x = labeled_train_iter.next()
-        except:
-            labeled_train_iter = iter(labeled_trainloader)
-            inputs_x, targets_x = labeled_train_iter.next()
+    # for batch_idx in range(args.train_iteration):
+    for batch_idx, (inputs_x, targets_x) in enumerate(labeled_trainloader):
+        # try:
+        #     inputs_x, targets_x = labeled_train_iter.next()
+        # except:
+        #     labeled_train_iter = iter(labeled_trainloader)
+        #     inputs_x, targets_x = labeled_train_iter.next()
 
         # try:
         #     (inputs_u, inputs_u2), _ = unlabeled_train_iter.next()
