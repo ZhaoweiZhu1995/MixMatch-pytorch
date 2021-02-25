@@ -298,6 +298,64 @@ def train(labeled_trainloader, unlabeled_trainloader, model, optimizer, ema_opti
 
     return (losses.avg, losses_x.avg, losses_u.avg,)
 
+def train_small(valloader, model, criterion, epoch, use_cuda, mode, num_classes = 10):
+
+    batch_time = AverageMeter()
+    data_time = AverageMeter()
+    losses = AverageMeter()
+    top1 = AverageMeter()
+    top5 = AverageMeter()
+    top1_per_class = AverageMeterVector(num_classes)
+
+    # switch to evaluate mode
+    model.eval()
+
+    end = time.time()
+    bar = Bar(f'{mode}', max=len(valloader))
+    with torch.no_grad():
+        for batch_idx, (inputs, targets) in enumerate(valloader):
+            # measure data loading time
+            data_time.update(time.time() - end)
+
+            if use_cuda:
+                inputs, targets = inputs.cuda(), targets.cuda(non_blocking=True)
+            # compute output
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+
+            # measure accuracy and record loss
+            prec1, prec5 = accuracy(outputs, targets, topk=(1, 5))
+            prec1_per_class, rec_num = accuracy(outputs, targets, topk=(1,), per_class=True)
+            losses.update(loss.item(), inputs.size(0))
+            top1_per_class.update(prec1_per_class.cpu().numpy(), rec_num.cpu().numpy())
+
+            top1.update(prec1.item(), inputs.size(0))
+            top5.update(prec5.item(), inputs.size(0))
+
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
+            # plot progress
+            bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
+                        batch=batch_idx + 1,
+                        size=len(valloader),
+                        data=data_time.avg,
+                        bt=batch_time.avg,
+                        total=bar.elapsed_td,
+                        eta=bar.eta_td,
+                        loss=losses.avg,
+                        top1=top1.avg,
+                        top5=top5.avg,
+                        # top1_per_class = top1_per_class.avg,
+                        )
+        bar.finish()
+        print(f'{[mode]} top1_per_class accuracy is: {np.round(top1_per_class.avg,2)}, average: {np.round(top1.avg,4)}', flush = True)
+        
+    return (losses.avg, top1.avg)
+
+
+
 def validate(valloader, model, criterion, epoch, use_cuda, mode, num_classes = 10):
 
     batch_time = AverageMeter()
