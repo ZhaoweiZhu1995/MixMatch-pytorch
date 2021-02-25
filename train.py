@@ -46,6 +46,7 @@ parser.add_argument('--lambda-u', default=75, type=float)
 parser.add_argument('--T', default=0.5, type=float)
 parser.add_argument('--ema-decay', default=0.999, type=float)
 parser.add_argument('--sample', default='None', type=str, help='sampling strategy')
+parser.add_argument('--train_mode', default='ssl', type=str, help='training strategy')
 
 args = parser.parse_args()
 
@@ -138,7 +139,7 @@ def main():
     # Train and val
     for epoch in range(start_epoch, args.epochs):
 
-        if args.sample == 'small':
+        if args.train_mode == 'small':
             train_small(labeled_trainloader, model, optimizer, criterion, epoch, use_cuda, num_classes = 10)
         else:
             print('\nEpoch: [%d | %d] LR: %f' % (epoch + 1, args.epochs, state['lr']))
