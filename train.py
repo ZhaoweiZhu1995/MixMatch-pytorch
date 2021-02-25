@@ -140,7 +140,7 @@ def main():
     for epoch in range(start_epoch, args.epochs):
 
         if args.train_mode == 'small':
-            train_small(labeled_trainloader, model, optimizer, criterion, epoch, use_cuda, num_classes = 10)
+            train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, ema_optimizer, train_criterion, epoch, use_cuda)
             val_loss, val_acc = validate(val_loader, ema_model, criterion, epoch, use_cuda, mode='Valid Stats')
             test_loss, test_acc = validate(test_loader, ema_model, criterion, epoch, use_cuda, mode='Test Stats ')
         else:
@@ -314,7 +314,7 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
     ws = AverageMeter()
     end = time.time()
 
-    bar = Bar('Training', max=args.train_iteration)
+    # bar = Bar('Training', max=args.train_iteration)
     labeled_train_iter = iter(labeled_trainloader)
     unlabeled_train_iter = iter(unlabeled_trainloader)
 
@@ -326,11 +326,11 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
             labeled_train_iter = iter(labeled_trainloader)
             inputs_x, targets_x = labeled_train_iter.next()
 
-        try:
-            (inputs_u, inputs_u2), _ = unlabeled_train_iter.next()
-        except:
-            unlabeled_train_iter = iter(unlabeled_trainloader)
-            (inputs_u, inputs_u2), _ = unlabeled_train_iter.next()
+        # try:
+        #     (inputs_u, inputs_u2), _ = unlabeled_train_iter.next()
+        # except:
+        #     unlabeled_train_iter = iter(unlabeled_trainloader)
+        #     (inputs_u, inputs_u2), _ = unlabeled_train_iter.next()
 
         # measure data loading time
         data_time.update(time.time() - end)
@@ -342,22 +342,22 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
 
         if use_cuda:
             inputs_x, targets_x = inputs_x.cuda(), targets_x.cuda(non_blocking=True)
-            inputs_u = inputs_u.cuda()
-            inputs_u2 = inputs_u2.cuda()
+            # inputs_u = inputs_u.cuda()
+            # inputs_u2 = inputs_u2.cuda()
 
 
-        with torch.no_grad():
-            # compute guessed labels of unlabel samples
-            outputs_u = model(inputs_u)
-            outputs_u2 = model(inputs_u2)
-            p = (torch.softmax(outputs_u, dim=1) + torch.softmax(outputs_u2, dim=1)) / 2
-            pt = p**(1/args.T)
-            targets_u = pt / pt.sum(dim=1, keepdim=True)
-            targets_u = targets_u.detach()
+        # with torch.no_grad():
+        #     # compute guessed labels of unlabel samples
+        #     outputs_u = model(inputs_u)
+        #     outputs_u2 = model(inputs_u2)
+        #     p = (torch.softmax(outputs_u, dim=1) + torch.softmax(outputs_u2, dim=1)) / 2
+        #     pt = p**(1/args.T)
+        #     targets_u = pt / pt.sum(dim=1, keepdim=True)
+        #     targets_u = targets_u.detach()
 
         # mixup
-        all_inputs = torch.cat([inputs_x, inputs_u, inputs_u2], dim=0)
-        all_targets = torch.cat([targets_x, targets_u, targets_u], dim=0)
+        all_inputs = torch.cat([inputs_x], dim=0)
+        all_targets = torch.cat([targets_x], dim=0)
 
         l = np.random.beta(args.alpha, args.alpha)
 
@@ -382,11 +382,11 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
         # put interleaved samples back
         logits = interleave(logits, batch_size)
         logits_x = logits[0]
-        logits_u = torch.cat(logits[1:], dim=0)
+        # logits_u = torch.cat(logits[1:], dim=0)
 
-        Lx, Lu, w = criterion(logits_x, mixed_target[:batch_size], logits_u, mixed_target[batch_size:], epoch+batch_idx/args.train_iteration)
+        Lx, Lu, w = criterion(logits_x, mixed_target[:batch_size], None, None, epoch+batch_idx/args.train_iteration)
 
-        loss = Lx + w * Lu
+        loss = Lx
 
         # record loss
         losses.update(loss.item(), inputs_x.size(0))
@@ -404,23 +404,23 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
         batch_time.update(time.time() - end)
         end = time.time()
 
-        # plot progress
-        bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | Loss_x: {loss_x:.4f} | Loss_u: {loss_u:.4f} | W: {w:.4f}'.format(
-                    batch=batch_idx + 1,
-                    size=args.train_iteration,
-                    data=data_time.avg,
-                    bt=batch_time.avg,
-                    total=bar.elapsed_td,
-                    eta=bar.eta_td,
-                    loss=losses.avg,
-                    loss_x=losses_x.avg,
-                    loss_u=losses_u.avg,
-                    w=ws.avg,
-                    )
-        bar.next()
-    bar.finish()
+    #     # plot progress
+    #     bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | Loss_x: {loss_x:.4f} | Loss_u: {loss_u:.4f} | W: {w:.4f}'.format(
+    #                 batch=batch_idx + 1,
+    #                 size=args.train_iteration,
+    #                 data=data_time.avg,
+    #                 bt=batch_time.avg,
+    #                 total=bar.elapsed_td,
+    #                 eta=bar.eta_td,
+    #                 loss=losses.avg,
+    #                 loss_x=losses_x.avg,
+    #                 loss_u=losses_u.avg,
+    #                 w=ws.avg,
+    #                 )
+    #     bar.next()
+    # bar.finish()
 
-    return (losses.avg, losses_x.avg, losses_u.avg,)
+    # return (losses.avg, losses_x.avg, losses_u.avg,)
 
 # def train_small(labeled_trainloader, model, optimizer, criterion, epoch, use_cuda, num_classes = 10):
 
@@ -542,13 +542,18 @@ def linear_rampup(current, rampup_length=args.epochs):
         return float(current)
 
 class SemiLoss(object):
-    def __call__(self, outputs_x, targets_x, outputs_u, targets_u, epoch):
-        probs_u = torch.softmax(outputs_u, dim=1)
+    def __call__(self, outputs_x, targets_x, outputs_u=None, targets_u=None, epoch=0):
+        
 
         Lx = -torch.mean(torch.sum(F.log_softmax(outputs_x, dim=1) * targets_x, dim=1))
-        Lu = torch.mean((probs_u - targets_u)**2)
+        if outputs_u is not None:
+            probs_u = torch.softmax(outputs_u, dim=1)
+            Lu = torch.mean((probs_u - targets_u)**2)
+            return Lx, Lu, args.lambda_u * linear_rampup(epoch)
+        else:
+            return Lx, None, args.lambda_u * linear_rampup(epoch)
+        
 
-        return Lx, Lu, args.lambda_u * linear_rampup(epoch)
 
 class WeightEMA(object):
     def __init__(self, model, ema_model, alpha=0.999):
