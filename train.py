@@ -373,20 +373,21 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
         mixed_input = l * input_a + (1 - l) * input_b
         mixed_target = l * target_a + (1 - l) * target_b
 
-        # interleave labeled and unlabed samples between batches to get correct batchnorm calculation 
-        mixed_input = list(torch.split(mixed_input, batch_size))
-        mixed_input = interleave(mixed_input, batch_size)
+        logits_x = model(mixed_input)
+        # # interleave labeled and unlabed samples between batches to get correct batchnorm calculation 
+        # mixed_input = list(torch.split(mixed_input, batch_size))
+        # mixed_input = interleave(mixed_input, batch_size)
 
-        logits = [model(mixed_input[0])]
-        for input in mixed_input[1:]:
-            logits.append(model(input))
+        # logits = [model(mixed_input[0])]
+        # for input in mixed_input[1:]:
+        #     logits.append(model(input))
 
-        # put interleaved samples back
-        logits = interleave(logits, batch_size)
-        logits_x = logits[0]
+        # # put interleaved samples back
+        # logits = interleave(logits, batch_size)
+        # logits_x = logits[0]
         # logits_u = torch.cat(logits[1:], dim=0)
 
-        Lx, Lu, w = criterion(logits_x, mixed_target[:batch_size], None, None, epoch+batch_idx/args.train_iteration)
+        Lx, Lu, w = criterion(logits_x, mixed_target, None, None, epoch+batch_idx/args.train_iteration)
 
         loss = Lx
 
