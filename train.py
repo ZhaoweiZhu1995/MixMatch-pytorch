@@ -110,8 +110,8 @@ def main():
 
     train_criterion = SemiLoss()
     criterion = nn.CrossEntropyLoss()
-    # optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    optimizer = optim.SGD(model.parameters(), lr=args.lr)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    # optimizer = optim.SGD(model.parameters(), lr=args.lr)
 
     ema_optimizer= WeightEMA(model, ema_model, alpha=args.ema_decay)
     start_epoch = 0
@@ -316,18 +316,18 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
     ws = AverageMeter()
     end = time.time()
 
-    # bar = Bar('Training', max=args.train_iteration)
+    bar = Bar('Training', max=args.train_iteration)
     labeled_train_iter = iter(labeled_trainloader)
     unlabeled_train_iter = iter(unlabeled_trainloader)
 
     model.train()
-    # for batch_idx in range(args.train_iteration):
-    for batch_idx, (inputs_x, targets_x) in enumerate(labeled_trainloader):
-        # try:
-        #     inputs_x, targets_x = labeled_train_iter.next()
-        # except:
-        #     labeled_train_iter = iter(labeled_trainloader)
-        #     inputs_x, targets_x = labeled_train_iter.next()
+    for batch_idx in range(args.train_iteration):
+    # for batch_idx, (inputs_x, targets_x) in enumerate(labeled_trainloader):
+        try:
+            inputs_x, targets_x = labeled_train_iter.next()
+        except:
+            labeled_train_iter = iter(labeled_trainloader)
+            inputs_x, targets_x = labeled_train_iter.next()
 
         # try:
         #     (inputs_u, inputs_u2), _ = unlabeled_train_iter.next()
@@ -392,9 +392,9 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
 
         loss = Lx
 
-        # # record loss
-        # losses.update(loss.item(), inputs_x.size(0))
-        # losses_x.update(Lx.item(), inputs_x.size(0))
+        # record loss
+        losses.update(loss.item(), inputs_x.size(0))
+        losses_x.update(Lx.item(), inputs_x.size(0))
         # losses_u.update(Lu.item(), inputs_x.size(0))
         # ws.update(w, inputs_x.size(0))
 
@@ -408,21 +408,21 @@ def train_small(labeled_trainloader, unlabeled_trainloader, model, optimizer, em
         batch_time.update(time.time() - end)
         end = time.time()
 
-    #     # plot progress
-    #     bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | Loss_x: {loss_x:.4f} | Loss_u: {loss_u:.4f} | W: {w:.4f}'.format(
-    #                 batch=batch_idx + 1,
-    #                 size=args.train_iteration,
-    #                 data=data_time.avg,
-    #                 bt=batch_time.avg,
-    #                 total=bar.elapsed_td,
-    #                 eta=bar.eta_td,
-    #                 loss=losses.avg,
-    #                 loss_x=losses_x.avg,
-    #                 loss_u=losses_u.avg,
-    #                 w=ws.avg,
-    #                 )
-    #     bar.next()
-    # bar.finish()
+        # plot progress
+        bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | Loss_x: {loss_x:.4f} '.format(
+                    batch=batch_idx + 1,
+                    size=args.train_iteration,
+                    data=data_time.avg,
+                    bt=batch_time.avg,
+                    total=bar.elapsed_td,
+                    eta=bar.eta_td,
+                    loss=losses.avg,
+                    loss_x=losses_x.avg,
+                    # loss_u=losses_u.avg,
+                    # w=ws.avg,
+                    )
+        bar.next()
+    bar.finish()
 
     # return (losses.avg, losses_x.avg, losses_u.avg,)
 
